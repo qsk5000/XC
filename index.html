@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة التطور — Mizan Academy IQ</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+/* ══════════════════════════════════════
+   TOKENS
+══════════════════════════════════════ */
+:root {
+  --ink:    #09111E;
+  --ink2:   #0D1A2D;
+  --ink3:   #132035;
+  --panel:  #111C2E;
+  --card:   #162338;
+  --border: rgba(197,160,89,.18);
+  --gold:   #C5A059;
+  --gold2:  #E2BF7A;
+  --gold3:  #8B6B35;
+  --goldBg: rgba(197,160,89,.08);
+  --text:   #E8EDF5;
+  --muted:  #7A8A9F;
+  --dim:    #4A5568;
+  --green:  #10B981;
+  --red:    #EF4444;
+  --amber:  #F59E0B;
+  --blue:   #3B82F6;
+  --purple: #8B5CF6;
+  --r:      14px;
+  --r-lg:   22px;
+  --r-xl:   30px;
+  --sh:     0 4px 24px rgba(0,0,0,.4);
+  --sh-lg:  0 16px 50px rgba(0,0,0,.55);
+  --tr:     .22s cubic-bezier(.4,0,.2,1);
+}
+
+/* ══════════════════════════════════════
+   RESET
+══════════════════════════════════════ */
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:smooth; }
+body {
+  font-family:'Cairo',sans-serif;
+  background:var(--ink);
+  color:var(--text);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-track { background:var(--ink2); }
+::-webkit-scrollbar-thumb { background:var(--gold3); border-radius:4px; }
+
+/* ══════════════════════════════════════
+   LOADER
+══════════════════════════════════════ */
+#gLoader {
+  display:none; position:fixed; inset:0;
+  background:rgba(9,17,30,.88); backdrop-filter:blur(10px);
+  z-index:9999; flex-direction:column;
+  align-items:center; justify-content:center; gap:16px;
+}
+#gLoader.on { display:flex; }
+.ring {
+  width:52px; height:52px;
+  border:4px solid rgba(197,160,89,.2);
+  border-top-color:var(--gold); border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+#loaderTxt { font-weight:700; color:var(--muted); font-size:.9rem; }
+
+/* ══════════════════════════════════════
+   TOAST
+══════════════════════════════════════ */
+#toasts {
+  position:fixed; top:20px; left:50%; transform:translateX(-50%);
+  z-index:10000; display:flex; flex-direction:column; gap:10px;
+  width:min(380px,92vw); pointer-events:none;
+}
+.toast {
+  padding:13px 18px; border-radius:var(--r); font-weight:700; font-size:.88rem;
+  display:flex; align-items:center; gap:10px; pointer-events:auto;
+  animation:tIn .35s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:var(--sh-lg); backdrop-filter:blur(12px);
+}
+.toast.s { background:rgba(16,185,129,.18); border:1px solid rgba(16,185,129,.4); color:#6EE7B7; }
+.toast.e { background:rgba(239,68,68,.15); border:1px solid rgba(239,68,68,.35); color:#FCA5A5; }
+.toast.w { background:rgba(245,158,11,.12); border:1px solid rgba(245,158,11,.4); color:#FCD34D; }
+@keyframes tIn { from{opacity:0;transform:translateY(-14px) scale(.94)} to{opacity:1;transform:none} }
+
+/* ══════════════════════════════════════
+   HERO
+══════════════════════════════════════ */
+.hero {
+  background:var(--ink2);
+  border-bottom:1px solid var(--border);
+  padding:56px 24px 100px;
+  text-align:center;
+  position:relative; overflow:hidden;
+}
+.hero-grid {
+  position:absolute; inset:0;
+  background-image:
+    linear-gradient(rgba(197,160,89,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(197,160,89,.03) 1px,transparent 1px);
+  background-size:50px 50px;
+}
+.hero-glow {
+  position:absolute; inset:0;
+  background:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(197,160,89,.07),transparent 65%);
+}
+.hero-inner { position:relative; z-index:2; }
+.hero-badge {
+  display:inline-flex; align-items:center; gap:8px;
+  background:var(--goldBg); border:1px solid rgba(197,160,89,.3);
+  padding:5px 16px; border-radius:30px;
+  color:var(--gold2); font-size:.75rem; font-weight:700;
+  letter-spacing:2px; text-transform:uppercase; margin-bottom:20px;
+}
+.hero-badge-dot { width:6px; height:6px; border-radius:50%; background:var(--gold); animation:bdot 2s infinite; }
+@keyframes bdot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.7)} }
+.hero h1 { font-size:clamp(1.6rem,4vw,2.4rem); font-weight:900; color:var(--text); margin-bottom:8px; }
+.hero h1 span {
+  color:var(--gold);
+  background:linear-gradient(90deg,var(--gold3),var(--gold2),var(--gold3));
+  background-size:200%;
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  animation:shine 3s linear infinite;
+}
+@keyframes shine { 0%{background-position:200%} 100%{background-position:-200%} }
+.hero p { color:var(--muted); font-size:.92rem; font-weight:600; }
+
+/* ══════════════════════════════════════
+   SEARCH CARD
+══════════════════════════════════════ */
+.container { max-width:860px; margin:0 auto; padding:0 16px 80px; position:relative; top:-52px; }
+
+.search-card {
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:var(--r-xl); padding:32px 28px;
+  box-shadow:var(--sh-lg); margin-bottom:24px;
+  text-align:center;
+}
+.search-card h3 { font-weight:900; color:var(--text); margin-bottom:6px; font-size:1.1rem; }
+.search-card p  { color:var(--muted); font-size:.82rem; margin-bottom:22px; }
+.search-row { display:flex; gap:10px; max-width:400px; margin:0 auto; }
+.search-field {
+  flex:1; padding:14px 18px;
+  background:var(--ink2); border:1.5px solid rgba(197,160,89,.2);
+  border-radius:var(--r); color:var(--text); font-family:'Cairo',sans-serif;
+  font-weight:700; font-size:1rem; text-align:center; letter-spacing:3px;
+  outline:none; transition:border-color var(--tr), box-shadow var(--tr);
+}
+.search-field::placeholder { letter-spacing:0; color:var(--dim); font-weight:500; }
+.search-field:focus { border-color:var(--gold); box-shadow:0 0 0 4px rgba(197,160,89,.12); }
+.btn-search {
+  padding:14px 22px; border-radius:var(--r);
+  background:linear-gradient(135deg,var(--gold3),var(--gold));
+  color:var(--ink); font-family:'Cairo',sans-serif;
+  font-weight:900; font-size:.9rem; border:none; cursor:pointer;
+  transition:all var(--tr); white-space:nowrap;
+  box-shadow:0 4px 16px rgba(197,160,89,.3);
+}
+.btn-search:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(197,160,89,.4); }
+.btn-search:active { transform:none; }
+
+/* ══════════════════════════════════════
+   IDENTITY STRIP
+══════════════════════════════════════ */
+.id-strip {
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:var(--r-xl); padding:22px 26px;
+  display:flex; align-items:center; gap:18px;
+  margin-bottom:20px; box-shadow:var(--sh);
+}
+.id-avatar {
+  width:62px; height:62px; border-radius:50%; flex-shrink:0;
+  background:linear-gradient(135deg,var(--gold3),var(--gold));
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.5rem; font-weight:900; color:var(--ink);
+  border:3px solid rgba(197,160,89,.3);
+}
+.id-name  { font-weight:900; color:var(--text); font-size:1.05rem; }
+.id-code  { color:var(--muted); font-size:.78rem; font-weight:600; margin-top:3px; }
+.badges-row { display:flex; flex-wrap:wrap; gap:7px; margin-top:8px; }
+.badge {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:4px 12px; border-radius:20px; font-size:.72rem; font-weight:800;
+  background:var(--goldBg); border:1px solid rgba(197,160,89,.3); color:var(--gold2);
+}
+.badge.green { background:rgba(16,185,129,.1); border-color:rgba(16,185,129,.3); color:#6EE7B7; }
+.badge.blue  { background:rgba(59,130,246,.1); border-color:rgba(59,130,246,.3); color:#93C5FD; }
+.badge.purple{ background:rgba(139,92,246,.1); border-color:rgba(139,92,246,.3); color:#C4B5FD; }
+
+/* ══════════════════════════════════════
+   KPI STRIP
+══════════════════════════════════════ */
+.kpi-row { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:24px; }
+@media(max-width:480px) { .kpi-row { grid-template-columns:1fr 1fr; } }
+.kpi-box {
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:var(--r-lg); padding:18px 14px; text-align:center;
+  transition:all var(--tr);
+}
+.kpi-box:hover { border-color:rgba(197,160,89,.35); transform:translateY(-3px); }
+.kpi-icon {
+  width:38px; height:38px; border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:.9rem; margin:0 auto 10px;
+}
+.kpi-val { font-size:1.6rem; font-weight:900; color:var(--text); line-height:1; }
+.kpi-lbl { font-size:.7rem; color:var(--muted); font-weight:700; margin-top:4px; }
+
+/* ══════════════════════════════════════
+   OVERVIEW CHART CARD
+══════════════════════════════════════ */
+.chart-card {
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:var(--r-xl); padding:24px;
+  margin-bottom:20px; box-shadow:var(--sh);
+}
+.chart-head {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:18px; flex-wrap:wrap; gap:10px;
+}
+.chart-title { font-weight:900; color:var(--text); font-size:.95rem; display:flex; align-items:center; gap:8px; }
+.chart-title i { color:var(--gold); font-size:.88rem; }
+.chart-wrap { position:relative; height:220px; }
+
+/* ══════════════════════════════════════
+   SUBJECT CARDS
+══════════════════════════════════════ */
+.subjects-label {
+  font-size:.8rem; font-weight:700; color:var(--muted);
+  text-transform:uppercase; letter-spacing:1.5px;
+  margin-bottom:14px; display:flex; align-items:center; gap:8px;
+}
+.subjects-label::after { content:''; flex:1; height:1px; background:var(--border); }
+
+.subj-card {
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:var(--r-xl); padding:22px 24px;
+  margin-bottom:14px; box-shadow:var(--sh);
+  transition:all var(--tr); position:relative; overflow:hidden;
+}
+.subj-card::before {
+  content:''; position:absolute; top:0; right:0; width:3px; height:100%;
+  background:var(--gold); border-radius:0 var(--r-xl) var(--r-xl) 0;
+  transition:width var(--tr);
+}
+.subj-card:hover { border-color:rgba(197,160,89,.3); transform:translateX(-4px); }
+.subj-card:hover::before { width:5px; }
+
+.subj-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px; }
+.subj-name { font-weight:900; color:var(--text); font-size:1rem; display:flex; align-items:center; gap:10px; }
+.subj-emoji { font-size:1.2rem; }
+.trend-chip {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:5px 12px; border-radius:20px; font-size:.75rem; font-weight:800;
+}
+.trend-up   { background:rgba(16,185,129,.12); color:#34D399; border:1px solid rgba(16,185,129,.25); }
+.trend-down { background:rgba(239,68,68,.1); color:#FCA5A5; border:1px solid rgba(239,68,68,.2); }
+.trend-flat { background:rgba(245,158,11,.1); color:#FCD34D; border:1px solid rgba(245,158,11,.25); }
+
+.subj-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:14px; }
+@media(max-width:480px) { .subj-stats { grid-template-columns:repeat(2,1fr); } }
+.ss-box { background:var(--card); border-radius:var(--r); padding:10px 8px; text-align:center; border:1px solid var(--border); }
+.ss-val { font-size:1.15rem; font-weight:900; color:var(--text); }
+.ss-lbl { font-size:.68rem; color:var(--muted); font-weight:700; margin-top:2px; }
+
+/* Progress bar */
+.prog-row { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+.prog-track { flex:1; height:8px; background:var(--card); border-radius:4px; overflow:hidden; }
+.prog-fill { height:100%; border-radius:4px; transition:width 1.4s cubic-bezier(.4,0,.2,1); width:0%; }
+.prog-pct { font-size:.8rem; font-weight:900; color:var(--muted); min-width:36px; text-align:left; }
+
+/* Score timeline */
+.timeline { display:flex; gap:7px; overflow-x:auto; padding-bottom:4px; margin-bottom:14px; }
+.timeline::-webkit-scrollbar { height:4px; }
+.tl-dot {
+  min-width:36px; height:36px; border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:900; font-size:.75rem; flex-shrink:0;
+  position:relative; transition:transform var(--tr);
+}
+.tl-dot:hover { transform:scale(1.15); }
+.tl-dot.ex { background:rgba(16,185,129,.2); color:#34D399; border:1px solid rgba(16,185,129,.3); }
+.tl-dot.av { background:rgba(245,158,11,.15); color:#FCD34D; border:1px solid rgba(245,158,11,.3); }
+.tl-dot.lo { background:rgba(239,68,68,.12); color:#FCA5A5; border:1px solid rgba(239,68,68,.25); }
+.tl-dot.last { box-shadow:0 0 0 3px rgba(197,160,89,.4); }
+
+/* Smart note */
+.smart-note {
+  background:var(--goldBg); border:1px solid rgba(197,160,89,.2);
+  border-radius:var(--r); padding:12px 14px;
+  font-size:.82rem; color:var(--muted); line-height:1.6;
+  display:flex; gap:10px; align-items:flex-start;
+}
+.smart-note i { color:var(--gold); flex-shrink:0; margin-top:2px; }
+
+/* Sparkline mini-chart in card */
+.mini-chart-wrap { height:80px; margin:10px 0; }
+
+/* ══════════════════════════════════════
+   SHARE BTN
+══════════════════════════════════════ */
+.share-btn {
+  width:100%; padding:16px;
+  background:transparent; border:1.5px dashed rgba(197,160,89,.3);
+  border-radius:var(--r-lg); color:var(--muted);
+  font-family:'Cairo',sans-serif; font-weight:700; font-size:.9rem;
+  cursor:pointer; transition:all var(--tr);
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  margin-top:10px;
+}
+.share-btn:hover { border-color:var(--gold); color:var(--gold); background:var(--goldBg); }
+
+/* ══════════════════════════════════════
+   HELPERS
+══════════════════════════════════════ */
+.hidden { display:none; }
+.reveal { opacity:0; transform:translateY(14px); transition:opacity .5s ease,transform .5s ease; }
+.reveal.vis { opacity:1; transform:none; }
+
+/* ══════════════════════════════════════
+   EMPTY / ERROR
+══════════════════════════════════════ */
+.err-msg {
+  display:flex; align-items:center; gap:8px; justify-content:center;
+  color:#FCA5A5; font-size:.85rem; font-weight:700; margin-top:12px; min-height:20px;
+}
+
+@media(max-width:500px) {
+  .search-row { flex-direction:column; }
+  .id-strip { flex-direction:column; text-align:center; }
+  .id-strip .badges-row { justify-content:center; }
+}
+</style>
+
+</head>
+<body>
+
+<!-- LOADER -->
+
+<div id="gLoader"><div class="ring"></div><div id="loaderTxt">جاري التحليل...</div></div>
+
+<!-- TOASTS -->
+
+<div id="toasts"></div>
+
+<!-- HERO -->
+
+<div class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-inner">
+    <div class="hero-badge"><div class="hero-badge-dot"></div> MIZAN ACADEMY IQ</div>
+    <h1>لوحة <span>التطور الدراسي</span></h1>
+    <p>تحليل شامل ودقيق لمسيرتك الأكاديمية</p>
+  </div>
+</div>
+
+<!-- CONTAINER -->
+
+<div class="container" id="pageWrap">
+
+  <!-- SEARCH -->
+
+  <div class="search-card reveal" id="searchCard">
+    <h3>استعلام عن المسيرة الدراسية</h3>
+    <p>أدخل كود الطالب للحصول على تقرير تفصيلي</p>
+    <div class="search-row">
+      <input class="search-field" id="codeIn" type="text" placeholder="كود الطالب"
+        autocomplete="off" oninput="this.value=this.value.toUpperCase()"
+        onkeydown="if(event.key==='Enter')doFetch()">
+      <button class="btn-search" onclick="doFetch()">
+        <i class="fas fa-chart-line"></i> تحليل
+      </button>
+    </div>
+    <div class="err-msg" id="errMsg"></div>
+  </div>
+
+  <!-- RESULTS (injected) -->
+
+  <div id="results"></div>
+
+</div>
+
+<script>
+/* ── Firebase ── */
+firebase.initializeApp({
+  apiKey:    "AIzaSyCL7hbXqwzErzrshZOXjszErbS4t9LSWs8",
+  authDomain:"amimizaniq.firebaseapp.com",
+  projectId: "amimizaniq",
+  appId:     "1:644598552588:web:fb226a15704bb65c377629"
+});
+const db = firebase.firestore();
+
+/* ── Helpers ── */
+const $ = id => document.getElementById(id);
+let activeCharts = [];
+
+function loader(msg='') { $('loaderTxt').textContent=msg; $('gLoader').classList.add('on'); }
+function unloader()     { $('gLoader').classList.remove('on'); }
+
+function toast(msg, type='s', dur=3400) {
+  const icons={s:'fa-check-circle',e:'fa-times-circle',w:'fa-exclamation-triangle'};
+  const el=document.createElement('div');
+  el.className=`toast ${type}`;
+  el.innerHTML=`<i class="fas ${icons[type]}"></i><span>${msg}</span>`;
+  $('toasts').appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='.3s'; }, dur-350);
+  setTimeout(()=>el.remove(), dur);
+}
+
+function esc(s){ return String(s||'').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+const IO = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('vis'); });
+},{threshold:.1});
+function observe(el){ IO.observe(el); }
+
+/* ── Analytics ── */
+function parsePct(v) {
+  const s=String(v);
+  if(s.includes('/')) { const [a,b]=s.split('/'); return Math.round((parseFloat(a)/parseFloat(b))*100); }
+  return parseFloat(s)||0;
+}
+
+function scoreClass(s) { return s>=80?'ex':s>=50?'av':'lo'; }
+function scoreColor(s) { return s>=80?'var(--green)':s>=50?'var(--amber)':'var(--red)'; }
+
+function calcStats(scores) {
+  const n=scores.length;
+  if(!n) return {avg:0,max:0,min:0,last:0,prev:0,trend:'flat'};
+  const avg=scores.reduce((a,b)=>a+b,0)/n;
+  const last=scores[n-1], prev=scores[n-2]??last;
+  const diff=last-prev;
+  return {
+    avg:parseFloat(avg.toFixed(1)),
+    max:Math.max(...scores),
+    min:Math.min(...scores),
+    last, prev,
+    trend: diff>1?'up':diff<-1?'down':'flat'
+  };
+}
+
+function getRecommendation(subj, st) {
+  const {last,prev,avg,max} = st;
+  if(last>=95) return `أداء استثنائي في ${subj}! أنت تنافس على القمة.`;
+  if(last<40)  return `مستوى ${subj} يحتاج تدخلاً فورياً. راجع المادة من البداية مع الأستاذ.`;
+  if(last<55)  return `درجة ${subj} أقل من المتوسط. ركّز على الواجبات ولا تفوت أي تمرين.`;
+  if(last>prev+8)  return `قفزة رائعة في ${subj}! استمر بنفس الأسلوب.`;
+  if(last<prev-8)  return `تراجع ملحوظ في ${subj}. لا تيأس — راجع آخر اختبار وحدّد نقطة الضعف.`;
+  if(avg>=80)  return `معدل ${subj} ممتاز. اهدف لتجاوز ${Math.min(max+3,100)} في الاختبار القادم.`;
+  return `مستوى ${subj} جيد ويمكن تطويره. حاول حل تمارين إضافية لرفع المعدل.`;
+}
+
+function generateBadges(data, avg) {
+  let b=[];
+  if(avg>=90) b.push({icon:'fa-crown',label:'طالب ذهبي',cl:''});
+  if(avg>=80 && avg<90) b.push({icon:'fa-medal',label:'مستوى ممتاز',cl:'blue'});
+  if((data.absences||0)===0) b.push({icon:'fa-shield-alt',label:'صفر غيابات',cl:'green'});
+  const subjects=Object.keys(data.exams||{});
+  if(subjects.length>0){
+    const allPass=subjects.every(s=>{ const sc=data.exams[s].map(v=>parsePct(v)); return Math.max(...sc)>=90; });
+    if(allPass) b.push({icon:'fa-bolt',label:'قناص الدرجات',cl:'purple'});
+  }
+  if((data.absences||0)<=2 && avg>=75) b.push({icon:'fa-fire',label:'متفوق ملتزم',cl:''});
+  return b.map(x=>`<div class="badge ${x.cl}"><i class="fas ${x.icon}"></i>${x.label}</div>`).join('');
+}
+
+/* ── Main fetch ── */
+async function doFetch() {
+  const code=$('codeIn').value.trim().toUpperCase();
+  if(!code){ toast('أدخل كود الطالب','w'); return; }
+  $('errMsg').innerHTML='';
+  loader('جاري تحليل بياناتك...');
+
+  // Destroy old charts
+  activeCharts.forEach(c=>c.destroy&&c.destroy());
+  activeCharts=[];
+
+  try {
+    const doc = await db.collection('StudentResults').doc(code).get();
+    if(!doc.exists){
+      $('errMsg').innerHTML='<i class="fas fa-exclamation-triangle"></i> الكود غير موجود في النظام';
+      $('results').innerHTML='';
+      unloader(); return;
+    }
+    const data = doc.data();
+    buildUI(data, code);
+    toast(`تم تحميل تقرير ${data.name}، تحقق من نتائجك`,'s');
+  } catch(e) {
+    toast('خطأ في الاتصال بالخادم','e');
+    console.error(e);
+  }
+  unloader();
+}
+
+/* ── Build UI ── */
+function buildUI(data, code) {
+  const res=$('results');
+  res.innerHTML='';
+
+  // Compute overall avg
+  let allScores=[];
+  for(let s in (data.exams||{})){
+    data.exams[s].forEach(v=>allScores.push(parsePct(v)));
+  }
+  const overall = allScores.length ? allScores.reduce((a,b)=>a+b,0)/allScores.length : 0;
+  const overallStr = overall.toFixed(1);
+  const absences = data.absences||0;
+  const subjCount = Object.keys(data.exams||{}).length;
+
+  // ── Identity strip ──
+  const idEl = document.createElement('div');
+  idEl.className='id-strip reveal';
+  idEl.innerHTML=`
+    <div class="id-avatar">${(data.name||'ط').charAt(0)}</div>
+    <div>
+      <div class="id-name">${esc(data.name)}</div>
+      <div class="id-code">كود الطالب: ${esc(code)}</div>
+      <div class="badges-row">${generateBadges(data,overall)}</div>
+    </div>`;
+  res.appendChild(idEl);
+  observe(idEl);
+
+  // ── KPI row ──
+  const kpiEl=document.createElement('div');
+  kpiEl.className='kpi-row reveal';
+  kpiEl.innerHTML=`
+    <div class="kpi-box">
+      <div class="kpi-icon" style="background:rgba(197,160,89,.12);color:var(--gold);"><i class="fas fa-star"></i></div>
+      <div class="kpi-val">${overallStr}%</div>
+      <div class="kpi-lbl">المعدل التراكمي</div>
+    </div>
+    <div class="kpi-box">
+      <div class="kpi-icon" style="background:rgba(239,68,68,.1);color:var(--red);"><i class="fas fa-calendar-times"></i></div>
+      <div class="kpi-val">${absences}</div>
+      <div class="kpi-lbl">الغيابات</div>
+    </div>
+    <div class="kpi-box">
+      <div class="kpi-icon" style="background:rgba(59,130,246,.1);color:var(--blue);"><i class="fas fa-book-open"></i></div>
+      <div class="kpi-val">${subjCount}</div>
+      <div class="kpi-lbl">المواد</div>
+    </div>`;
+  res.appendChild(kpiEl);
+  observe(kpiEl);
+
+  // ── Overview chart (bar per subject) ──
+  const ovCard=document.createElement('div');
+  ovCard.className='chart-card reveal';
+  ovCard.innerHTML=`
+    <div class="chart-head">
+      <div class="chart-title"><i class="fas fa-chart-bar"></i> نظرة عامة على آخر اختبار لكل مادة</div>
+    </div>
+    <div class="chart-wrap"><canvas id="overviewChart"></canvas></div>`;
+  res.appendChild(ovCard);
+  observe(ovCard);
+
+  setTimeout(()=>{
+    const labels=[], vals=[], colors=[];
+    for(let s in (data.exams||{})){
+      const sc=data.exams[s].map(v=>parsePct(v));
+      const last=sc[sc.length-1];
+      labels.push(s); vals.push(last);
+      colors.push(scoreColor(last));
+    }
+    const ctx=$('overviewChart').getContext('2d');
+    const ch=new Chart(ctx,{
+      type:'bar',
+      data:{
+        labels,
+        datasets:[{
+          label:'آخر درجة',data:vals,
+          backgroundColor:colors.map(c=>c.replace(')',', 0.7)').replace('var','rgba').replace('--green','16,185,129').replace('--amber','245,158,11').replace('--red','239,68,68')),
+          borderColor:colors,
+          borderWidth:2,
+          borderRadius:8,
+          borderSkipped:false,
+        }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{display:false},
+          tooltip:{backgroundColor:'#0D1A2D',titleColor:'#C5A059',bodyColor:'#E8EDF5',borderColor:'rgba(197,160,89,.3)',borderWidth:1,padding:10}},
+        scales:{
+          x:{ticks:{color:'#7A8A9F',font:{family:'Cairo',size:11}},grid:{color:'rgba(255,255,255,.03)'}},
+          y:{min:0,max:100,ticks:{color:'#7A8A9F',font:{family:'Cairo',size:11}},grid:{color:'rgba(255,255,255,.05)'}}
+        }
+      }
+    });
+    activeCharts.push(ch);
+  },200);
+
+  // ── Subject cards ──
+  const subjLabel=document.createElement('div');
+  subjLabel.className='subjects-label reveal';
+  subjLabel.textContent='تفاصيل كل مادة';
+  res.appendChild(subjLabel);
+  observe(subjLabel);
+
+  const emojis=['📚','🔬','🧮','✏️','🌍','🎨','⚗️','📐'];
+  let ei=0;
+
+  for(let subj in (data.exams||{})){
+    const rawScores = data.exams[subj];
+    const scores = rawScores.map(v=>parsePct(v));
+    const st = calcStats(scores);
+    const emoji = emojis[ei%emojis.length]; ei++;
+
+    const trendHTML =
+      st.trend==='up'   ? `<span class="trend-chip trend-up"><i class="fas fa-arrow-up"></i> صعود ${st.last-st.prev > 0 ? '+'+((st.last-st.prev).toFixed(0)) : ''}</span>` :
+      st.trend==='down' ? `<span class="trend-chip trend-down"><i class="fas fa-arrow-down"></i> تراجع ${((st.last-st.prev).toFixed(0))}</span>` :
+                          `<span class="trend-chip trend-flat"><i class="fas fa-minus"></i> مستقر</span>`;
+
+    const fillColor = scoreColor(st.last);
+    const rec = getRecommendation(subj, st);
+    const safeId = subj.replace(/\s+/g,'_').replace(/[^\w]/g,'');
+    const chartId = `chart_${safeId}`;
+
+    const card=document.createElement('div');
+    card.className='subj-card reveal';
+    card.innerHTML=`
+      <div class="subj-top">
+        <div class="subj-name"><span class="subj-emoji">${emoji}</span>${esc(subj)}</div>
+        ${trendHTML}
+      </div>
+
+      <div class="subj-stats">
+        <div class="ss-box">
+          <div class="ss-val" style="color:${fillColor}">${st.last}%</div>
+          <div class="ss-lbl">آخر اختبار</div>
+        </div>
+        <div class="ss-box">
+          <div class="ss-val">${st.avg}%</div>
+          <div class="ss-lbl">المعدل</div>
+        </div>
+        <div class="ss-box">
+          <div class="ss-val" style="color:var(--green)">${st.max}%</div>
+          <div class="ss-lbl">الأعلى</div>
+        </div>
+        <div class="ss-box">
+          <div class="ss-val" style="color:var(--red)">${st.min}%</div>
+          <div class="ss-lbl">الأدنى</div>
+        </div>
+      </div>
+
+      <div class="prog-row">
+        <div class="prog-track">
+          <div class="prog-fill" data-val="${st.last}" style="background:${fillColor}"></div>
+        </div>
+        <div class="prog-pct">${st.last}%</div>
+      </div>
+
+      ${scores.length>1 ? `<div class="mini-chart-wrap"><canvas id="${chartId}"></canvas></div>` : ''}
+
+      <div class="timeline">
+        ${scores.map((s,i)=>`
+          <div class="tl-dot ${scoreClass(s)}${i===scores.length-1?' last':''}" title="اختبار ${i+1}: ${s}%">${s}</div>
+        `).join('')}
+      </div>
+
+      <div class="smart-note">
+        <i class="fas fa-lightbulb"></i>
+        <span>${esc(rec)}</span>
+      </div>`;
+    res.appendChild(card);
+    observe(card);
+
+    // Animate progress bars after append
+    setTimeout(()=>{
+      card.querySelectorAll('.prog-fill[data-val]').forEach(el=>{
+        el.style.width=el.dataset.val+'%';
+      });
+    },300);
+
+    // Mini sparkline
+    if(scores.length>1){
+      setTimeout(()=>{
+        const ctx2=$(`${chartId}`)?.getContext('2d');
+        if(!ctx2) return;
+        const grad=ctx2.createLinearGradient(0,0,0,80);
+        const rc=fillColor.includes('green')?'16,185,129':fillColor.includes('amber')?'245,158,11':'239,68,68';
+        grad.addColorStop(0,`rgba(${rc},.35)`);
+        grad.addColorStop(1,`rgba(${rc},.02)`);
+        const ch2=new Chart(ctx2,{
+          type:'line',
+          data:{
+            labels:scores.map((_,i)=>`${i+1}`),
+            datasets:[{
+              data:scores,borderColor:fillColor,borderWidth:2,
+              fill:true,backgroundColor:grad,
+              tension:.45,pointRadius:3,pointBackgroundColor:fillColor,
+              pointHoverRadius:5,
+            }]
+          },
+          options:{
+            responsive:true,maintainAspectRatio:false,
+            plugins:{legend:{display:false},tooltip:{
+              backgroundColor:'#0D1A2D',titleColor:'#C5A059',bodyColor:'#E8EDF5',
+              borderColor:'rgba(197,160,89,.3)',borderWidth:1,padding:8
+            }},
+            scales:{
+              x:{display:false},
+              y:{display:false,min:0,max:100}
+            }
+          }
+        });
+        activeCharts.push(ch2);
+      },400);
+    }
+  }
+
+  // ── Share button ──
+  const shareEl=document.createElement('button');
+  shareEl.className='share-btn reveal';
+  shareEl.innerHTML='<i class="fas fa-camera"></i> حفظ التقرير كصورة للمشاركة';
+  shareEl.onclick=doShare;
+  res.appendChild(shareEl);
+  observe(shareEl);
+}
+
+/* ── Share ── */
+async function doShare(){
+  loader('جاري إنشاء الصورة...');
+  try{
+    const canvas=await html2canvas($('pageWrap'),{
+      backgroundColor:'#09111E',scale:2,useCORS:true,
+      ignoreElements:el=>el.id==='searchCard'
+    });
+    const link=document.createElement('a');
+    link.download=`تقرير_ميزان_${new Date().toLocaleDateString('ar')}.png`;
+    link.href=canvas.toDataURL('image/png');
+    link.click();
+    toast('تم حفظ التقرير بنجاح','s');
+  }catch(e){ toast('حدث خطأ أثناء إنشاء الصورة','e'); }
+  unloader();
+}
+
+/* ── Init ── */
+document.querySelectorAll('.reveal').forEach(el=>IO.observe(el));
+</script>
+
+</body>
+</html>
