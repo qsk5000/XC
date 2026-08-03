@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
@@ -43,9 +42,6 @@
   --tr:     .22s cubic-bezier(.4,0,.2,1);
 }
 
-/* ══════════════════════════════════════
-   RESET
-══════════════════════════════════════ */
 *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
 html { scroll-behavior:smooth; }
 body {
@@ -97,6 +93,20 @@ body {
 .toast.e { background:rgba(239,68,68,.15); border:1px solid rgba(239,68,68,.35); color:#FCA5A5; }
 .toast.w { background:rgba(245,158,11,.12); border:1px solid rgba(245,158,11,.4); color:#FCD34D; }
 @keyframes tIn { from{opacity:0;transform:translateY(-14px) scale(.94)} to{opacity:1;transform:none} }
+
+/* ══════════════════════════════════════
+   CONFETTI
+══════════════════════════════════════ */
+#confettiLayer { position:fixed; inset:0; pointer-events:none; z-index:9998; overflow:hidden; }
+.confetti-piece {
+  position:absolute; top:-20px; width:9px; height:14px; opacity:.9;
+  animation:confFall linear forwards;
+  border-radius:2px;
+}
+@keyframes confFall {
+  0%   { transform:translateY(0) rotate(0deg); opacity:1; }
+  100% { transform:translateY(105vh) rotate(600deg); opacity:0; }
+}
 
 /* ══════════════════════════════════════
    HERO
@@ -173,6 +183,19 @@ body {
 }
 .btn-search:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(197,160,89,.4); }
 .btn-search:active { transform:none; }
+.err-msg {
+  display:flex; align-items:center; gap:8px; justify-content:center;
+  color:#FCA5A5; font-size:.85rem; font-weight:700; margin-top:12px; min-height:20px;
+}
+.quick-chip-row { display:flex; justify-content:center; margin-top:16px; }
+.quick-chip {
+  display:inline-flex; align-items:center; gap:7px;
+  background:var(--ink2); border:1px dashed rgba(197,160,89,.3);
+  color:var(--muted); font-family:'Cairo',sans-serif; font-weight:700;
+  font-size:.78rem; padding:8px 16px; border-radius:20px; cursor:pointer;
+  transition:all var(--tr);
+}
+.quick-chip:hover { border-color:var(--gold); color:var(--gold2); background:var(--goldBg); }
 
 /* ══════════════════════════════════════
    IDENTITY STRIP
@@ -181,17 +204,28 @@ body {
   background:var(--panel); border:1px solid var(--border);
   border-radius:var(--r-xl); padding:22px 26px;
   display:flex; align-items:center; gap:18px;
-  margin-bottom:20px; box-shadow:var(--sh);
+  margin-bottom:20px; box-shadow:var(--sh); flex-wrap:wrap;
 }
+.id-avatar-wrap { position:relative; flex-shrink:0; }
 .id-avatar {
-  width:62px; height:62px; border-radius:50%; flex-shrink:0;
+  width:62px; height:62px; border-radius:50%;
   background:linear-gradient(135deg,var(--gold3),var(--gold));
   display:flex; align-items:center; justify-content:center;
   font-size:1.5rem; font-weight:900; color:var(--ink);
   border:3px solid rgba(197,160,89,.3);
 }
+.grade-badge {
+  position:absolute; bottom:-4px; left:-4px;
+  width:28px; height:28px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:.68rem; font-weight:900; color:#fff;
+  border:2px solid var(--panel);
+  box-shadow:0 2px 8px rgba(0,0,0,.4);
+}
+.id-body { flex:1; min-width:180px; }
 .id-name  { font-weight:900; color:var(--text); font-size:1.05rem; }
 .id-code  { color:var(--muted); font-size:.78rem; font-weight:600; margin-top:3px; }
+.id-grade-label { font-size:.76rem; font-weight:800; margin-top:4px; }
 .badges-row { display:flex; flex-wrap:wrap; gap:7px; margin-top:8px; }
 .badge {
   display:inline-flex; align-items:center; gap:5px;
@@ -203,9 +237,21 @@ body {
 .badge.purple{ background:rgba(139,92,246,.1); border-color:rgba(139,92,246,.3); color:#C4B5FD; }
 
 /* ══════════════════════════════════════
+   QUOTE BANNER
+══════════════════════════════════════ */
+.quote-banner {
+  background:linear-gradient(90deg,var(--goldBg),transparent);
+  border:1px solid var(--border); border-right:3px solid var(--gold);
+  border-radius:var(--r-lg); padding:14px 18px; margin-bottom:20px;
+  display:flex; align-items:center; gap:12px;
+  font-size:.85rem; font-weight:700; color:var(--gold2); line-height:1.6;
+}
+.quote-banner i { font-size:1.1rem; flex-shrink:0; }
+
+/* ══════════════════════════════════════
    KPI STRIP
 ══════════════════════════════════════ */
-.kpi-row { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:24px; }
+.kpi-row { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:20px; }
 @media(max-width:480px) { .kpi-row { grid-template-columns:1fr 1fr; } }
 .kpi-box {
   background:var(--panel); border:1px solid var(--border);
@@ -222,7 +268,24 @@ body {
 .kpi-lbl { font-size:.7rem; color:var(--muted); font-weight:700; margin-top:4px; }
 
 /* ══════════════════════════════════════
-   OVERVIEW CHART CARD
+   STRENGTH / WEAKNESS HIGHLIGHTS
+══════════════════════════════════════ */
+.highlight-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:20px; }
+@media(max-width:520px) { .highlight-row { grid-template-columns:1fr; } }
+.highlight-card {
+  border-radius:var(--r-xl); padding:20px; box-shadow:var(--sh);
+  position:relative; overflow:hidden; border:1px solid var(--border);
+}
+.highlight-card.strong { background:linear-gradient(135deg,rgba(16,185,129,.12),var(--panel)); }
+.highlight-card.weak   { background:linear-gradient(135deg,rgba(239,68,68,.1),var(--panel)); }
+.hl-top { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+.hl-icon { width:32px; height:32px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:.9rem; }
+.hl-label { font-size:.72rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+.hl-subj { font-size:1.05rem; font-weight:900; color:var(--text); margin-bottom:4px; }
+.hl-val { font-size:1.5rem; font-weight:900; }
+
+/* ══════════════════════════════════════
+   CHART CARDS
 ══════════════════════════════════════ */
 .chart-card {
   background:var(--panel); border:1px solid var(--border);
@@ -235,6 +298,7 @@ body {
 }
 .chart-title { font-weight:900; color:var(--text); font-size:.95rem; display:flex; align-items:center; gap:8px; }
 .chart-title i { color:var(--gold); font-size:.88rem; }
+.chart-sub { font-size:.75rem; color:var(--muted); font-weight:600; }
 .chart-wrap { position:relative; height:220px; }
 
 /* ══════════════════════════════════════
@@ -261,16 +325,26 @@ body {
 .subj-card:hover { border-color:rgba(197,160,89,.3); transform:translateX(-4px); }
 .subj-card:hover::before { width:5px; }
 
-.subj-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px; }
+.rank-chip {
+  position:absolute; top:14px; left:14px;
+  width:24px; height:24px; border-radius:50%;
+  background:var(--ink2); border:1px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  font-size:.68rem; font-weight:900; color:var(--muted);
+}
+
+.subj-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:10px; padding-right:26px; }
 .subj-name { font-weight:900; color:var(--text); font-size:1rem; display:flex; align-items:center; gap:10px; }
 .subj-emoji { font-size:1.2rem; }
-.trend-chip {
+.chip-group { display:flex; flex-wrap:wrap; gap:6px; }
+.trend-chip, .predict-chip {
   display:inline-flex; align-items:center; gap:5px;
   padding:5px 12px; border-radius:20px; font-size:.75rem; font-weight:800;
 }
 .trend-up   { background:rgba(16,185,129,.12); color:#34D399; border:1px solid rgba(16,185,129,.25); }
 .trend-down { background:rgba(239,68,68,.1); color:#FCA5A5; border:1px solid rgba(239,68,68,.2); }
 .trend-flat { background:rgba(245,158,11,.1); color:#FCD34D; border:1px solid rgba(245,158,11,.25); }
+.predict-chip { background:rgba(139,92,246,.1); color:#C4B5FD; border:1px solid rgba(139,92,246,.25); }
 
 .subj-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:14px; }
 @media(max-width:480px) { .subj-stats { grid-template-columns:repeat(2,1fr); } }
@@ -278,13 +352,11 @@ body {
 .ss-val { font-size:1.15rem; font-weight:900; color:var(--text); }
 .ss-lbl { font-size:.68rem; color:var(--muted); font-weight:700; margin-top:2px; }
 
-/* Progress bar */
 .prog-row { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
 .prog-track { flex:1; height:8px; background:var(--card); border-radius:4px; overflow:hidden; }
 .prog-fill { height:100%; border-radius:4px; transition:width 1.4s cubic-bezier(.4,0,.2,1); width:0%; }
 .prog-pct { font-size:.8rem; font-weight:900; color:var(--muted); min-width:36px; text-align:left; }
 
-/* Score timeline */
 .timeline { display:flex; gap:7px; overflow-x:auto; padding-bottom:4px; margin-bottom:14px; }
 .timeline::-webkit-scrollbar { height:4px; }
 .tl-dot {
@@ -299,7 +371,6 @@ body {
 .tl-dot.lo { background:rgba(239,68,68,.12); color:#FCA5A5; border:1px solid rgba(239,68,68,.25); }
 .tl-dot.last { box-shadow:0 0 0 3px rgba(197,160,89,.4); }
 
-/* Smart note */
 .smart-note {
   background:var(--goldBg); border:1px solid rgba(197,160,89,.2);
   border-radius:var(--r); padding:12px 14px;
@@ -308,22 +379,21 @@ body {
 }
 .smart-note i { color:var(--gold); flex-shrink:0; margin-top:2px; }
 
-/* Sparkline mini-chart in card */
 .mini-chart-wrap { height:80px; margin:10px 0; }
 
 /* ══════════════════════════════════════
-   SHARE BTN
+   ACTION BUTTONS
 ══════════════════════════════════════ */
-.share-btn {
-  width:100%; padding:16px;
-  background:transparent; border:1.5px dashed rgba(197,160,89,.3);
+.action-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px; }
+@media(max-width:480px) { .action-row { grid-template-columns:1fr; } }
+.action-btn {
+  padding:16px; background:transparent; border:1.5px dashed rgba(197,160,89,.3);
   border-radius:var(--r-lg); color:var(--muted);
   font-family:'Cairo',sans-serif; font-weight:700; font-size:.9rem;
   cursor:pointer; transition:all var(--tr);
   display:flex; align-items:center; justify-content:center; gap:10px;
-  margin-top:10px;
 }
-.share-btn:hover { border-color:var(--gold); color:var(--gold); background:var(--goldBg); }
+.action-btn:hover { border-color:var(--gold); color:var(--gold); background:var(--goldBg); }
 
 /* ══════════════════════════════════════
    HELPERS
@@ -332,12 +402,16 @@ body {
 .reveal { opacity:0; transform:translateY(14px); transition:opacity .5s ease,transform .5s ease; }
 .reveal.vis { opacity:1; transform:none; }
 
-/* ══════════════════════════════════════
-   EMPTY / ERROR
-══════════════════════════════════════ */
-.err-msg {
-  display:flex; align-items:center; gap:8px; justify-content:center;
-  color:#FCA5A5; font-size:.85rem; font-weight:700; margin-top:12px; min-height:20px;
+@media print {
+  body { background:#fff !important; color:#000 !important; }
+  .no-print, .hero-badge, #toasts, #gLoader, #confettiLayer { display:none !important; }
+  .hero { background:#fff; border:none; padding:20px; }
+  .hero h1, .hero p { color:#000 !important; -webkit-text-fill-color:#000 !important; }
+  .id-strip, .kpi-box, .chart-card, .subj-card, .highlight-card {
+    background:#fff !important; border:1px solid #ccc !important; box-shadow:none !important;
+    break-inside:avoid;
+  }
+  .id-name, .kpi-val, .subj-name, .ss-val, .hl-subj { color:#000 !important; }
 }
 
 @media(max-width:500px) {
@@ -346,19 +420,12 @@ body {
   .id-strip .badges-row { justify-content:center; }
 }
 </style>
-
 </head>
 <body>
 
-<!-- LOADER -->
-
 <div id="gLoader"><div class="ring"></div><div id="loaderTxt">جاري التحليل...</div></div>
-
-<!-- TOASTS -->
-
 <div id="toasts"></div>
-
-<!-- HERO -->
+<div id="confettiLayer"></div>
 
 <div class="hero">
   <div class="hero-grid"></div>
@@ -370,13 +437,9 @@ body {
   </div>
 </div>
 
-<!-- CONTAINER -->
-
 <div class="container" id="pageWrap">
 
-  <!-- SEARCH -->
-
-  <div class="search-card reveal" id="searchCard">
+  <div class="search-card reveal no-print" id="searchCard">
     <h3>استعلام عن المسيرة الدراسية</h3>
     <p>أدخل كود الطالب للحصول على تقرير تفصيلي</p>
     <div class="search-row">
@@ -388,9 +451,8 @@ body {
       </button>
     </div>
     <div class="err-msg" id="errMsg"></div>
+    <div class="quick-chip-row" id="quickChipRow"></div>
   </div>
-
-  <!-- RESULTS (injected) -->
 
   <div id="results"></div>
 
@@ -424,11 +486,66 @@ function toast(msg, type='s', dur=3400) {
 }
 
 function esc(s){ return String(s||'').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
 
 const IO = new IntersectionObserver(entries=>{
   entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('vis'); });
 },{threshold:.1});
 function observe(el){ IO.observe(el); }
+
+/* ── Count-up animation ── */
+function countUp(el, target, suffix='', dur=900){
+  const start=performance.now();
+  const from=0;
+  function step(now){
+    const p=clamp((now-start)/dur,0,1);
+    const eased=1-Math.pow(1-p,3);
+    const val=(from+(target-from)*eased);
+    el.textContent = (Number.isInteger(target) ? Math.round(val) : val.toFixed(1)) + suffix;
+    if(p<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ── Confetti (lightweight, no external lib) ── */
+function fireConfetti(){
+  const colors=['#C5A059','#E2BF7A','#10B981','#3B82F6','#8B5CF6'];
+  const layer=$('confettiLayer');
+  for(let i=0;i<60;i++){
+    const p=document.createElement('div');
+    p.className='confetti-piece';
+    p.style.left=Math.random()*100+'vw';
+    p.style.background=colors[Math.floor(Math.random()*colors.length)];
+    p.style.animationDuration=(2.2+Math.random()*1.6)+'s';
+    p.style.animationDelay=(Math.random()*.5)+'s';
+    layer.appendChild(p);
+    setTimeout(()=>p.remove(), 4500);
+  }
+}
+
+/* ── Quotes ── */
+const QUOTES = {
+  excellent: [
+    'أنت في القمة! استمر بنفس الانضباط ولا تستهن بالمراجعة.',
+    'نتائج تستحق الفخر — حافظ على هذا المستوى حتى يوم الامتحان الوزاري.',
+    'التفوق ليس صدفة، بل نتيجة جهدك المستمر. واصل!'
+  ],
+  good: [
+    'أنت على الطريق الصحيح، دفعة إضافية بسيطة تأخذك للقمة.',
+    'كل اختبار فرصة جديدة لرفع معدلك — لا تفوّت أي مراجعة.',
+    'التحسن المستمر أهم من الكمال الفوري. استمر بخطى ثابتة.'
+  ],
+  needsWork: [
+    'البداية الصعبة لا تعني نهاية الطريق — نظّم وقتك وابدأ من الأساسيات.',
+    'كل طالب متفوق مرّ بمرحلة ضعف. المهم ألا تتوقف عن المحاولة.',
+    'ركّز على مادة واحدة في كل مرة، والتقدم سيأتي تدريجياً.'
+  ]
+};
+function pickQuote(avg){
+  const tier = avg>=85?'excellent': avg>=60?'good':'needsWork';
+  const arr=QUOTES[tier];
+  return arr[Math.floor(Math.random()*arr.length)];
+}
 
 /* ── Analytics ── */
 function parsePct(v) {
@@ -440,18 +557,31 @@ function parsePct(v) {
 function scoreClass(s) { return s>=80?'ex':s>=50?'av':'lo'; }
 function scoreColor(s) { return s>=80?'var(--green)':s>=50?'var(--amber)':'var(--red)'; }
 
+function gradeInfo(avg){
+  if(avg>=95) return {letter:'A+',label:'متميز استثنائي',color:'#10B981'};
+  if(avg>=90) return {letter:'A', label:'ممتاز',           color:'#34D399'};
+  if(avg>=80) return {letter:'B+',label:'جيد جداً مرتفع',   color:'#60A5FA'};
+  if(avg>=70) return {letter:'B', label:'جيد جداً',         color:'#3B82F6'};
+  if(avg>=60) return {letter:'C+',label:'جيد',             color:'#F59E0B'};
+  if(avg>=50) return {letter:'C', label:'مقبول',           color:'#FBBF24'};
+  if(avg>=40) return {letter:'D', label:'ضعيف',            color:'#F87171'};
+  return               {letter:'F', label:'ضعيف جداً',       color:'#EF4444'};
+}
+
 function calcStats(scores) {
   const n=scores.length;
-  if(!n) return {avg:0,max:0,min:0,last:0,prev:0,trend:'flat'};
+  if(!n) return {avg:0,max:0,min:0,last:0,prev:0,trend:'flat',predicted:0};
   const avg=scores.reduce((a,b)=>a+b,0)/n;
   const last=scores[n-1], prev=scores[n-2]??last;
   const diff=last-prev;
+  const predicted = n>1 ? Math.round(clamp(last+diff*0.6,0,100)) : last;
   return {
     avg:parseFloat(avg.toFixed(1)),
     max:Math.max(...scores),
     min:Math.min(...scores),
     last, prev,
-    trend: diff>1?'up':diff<-1?'down':'flat'
+    trend: diff>1?'up':diff<-1?'down':'flat',
+    predicted
   };
 }
 
@@ -480,6 +610,24 @@ function generateBadges(data, avg) {
   return b.map(x=>`<div class="badge ${x.cl}"><i class="fas ${x.icon}"></i>${x.label}</div>`).join('');
 }
 
+/* ── Quick recall (localStorage + URL param) ── */
+function setupQuickRecall(){
+  const params=new URLSearchParams(location.search);
+  const urlCode=params.get('code');
+  const lastCode=localStorage.getItem('mizan_last_code');
+
+  if(urlCode){
+    $('codeIn').value=urlCode.toUpperCase();
+    doFetch();
+    return;
+  }
+  if(lastCode){
+    $('codeIn').value=lastCode;
+    const row=$('quickChipRow');
+    row.innerHTML=`<button class="quick-chip" onclick="doFetch()"><i class="fas fa-history"></i> إعادة عرض تقرير: ${esc(lastCode)}</button>`;
+  }
+}
+
 /* ── Main fetch ── */
 async function doFetch() {
   const code=$('codeIn').value.trim().toUpperCase();
@@ -487,7 +635,6 @@ async function doFetch() {
   $('errMsg').innerHTML='';
   loader('جاري تحليل بياناتك...');
 
-  // Destroy old charts
   activeCharts.forEach(c=>c.destroy&&c.destroy());
   activeCharts=[];
 
@@ -499,6 +646,7 @@ async function doFetch() {
       unloader(); return;
     }
     const data = doc.data();
+    localStorage.setItem('mizan_last_code', code);
     buildUI(data, code);
     toast(`تم تحميل تقرير ${data.name}، تحقق من نتائجك`,'s');
   } catch(e) {
@@ -513,24 +661,40 @@ function buildUI(data, code) {
   const res=$('results');
   res.innerHTML='';
 
-  // Compute overall avg
+  // Compute overall avg + per-subject stats
   let allScores=[];
+  const subjEntries=[];
   for(let s in (data.exams||{})){
-    data.exams[s].forEach(v=>allScores.push(parsePct(v)));
+    const scores=data.exams[s].map(v=>parsePct(v));
+    scores.forEach(v=>allScores.push(v));
+    subjEntries.push({ subj:s, scores, st:calcStats(scores) });
   }
+  subjEntries.sort((a,b)=>b.st.last-a.st.last);
+
   const overall = allScores.length ? allScores.reduce((a,b)=>a+b,0)/allScores.length : 0;
-  const overallStr = overall.toFixed(1);
   const absences = data.absences||0;
-  const subjCount = Object.keys(data.exams||{}).length;
+  const subjCount = subjEntries.length;
+  const grade = gradeInfo(overall);
+
+  /* Quote banner */
+  const quoteEl=document.createElement('div');
+  quoteEl.className='quote-banner reveal';
+  quoteEl.innerHTML=`<i class="fas fa-quote-right"></i><span>${esc(pickQuote(overall))}</span>`;
+  res.appendChild(quoteEl);
+  observe(quoteEl);
 
   // ── Identity strip ──
   const idEl = document.createElement('div');
   idEl.className='id-strip reveal';
   idEl.innerHTML=`
-    <div class="id-avatar">${(data.name||'ط').charAt(0)}</div>
-    <div>
+    <div class="id-avatar-wrap">
+      <div class="id-avatar">${(data.name||'ط').charAt(0)}</div>
+      <div class="grade-badge" style="background:${grade.color}">${grade.letter}</div>
+    </div>
+    <div class="id-body">
       <div class="id-name">${esc(data.name)}</div>
       <div class="id-code">كود الطالب: ${esc(code)}</div>
+      <div class="id-grade-label" style="color:${grade.color}">${grade.label} — تقدير ${grade.letter}</div>
       <div class="badges-row">${generateBadges(data,overall)}</div>
     </div>`;
   res.appendChild(idEl);
@@ -542,23 +706,57 @@ function buildUI(data, code) {
   kpiEl.innerHTML=`
     <div class="kpi-box">
       <div class="kpi-icon" style="background:rgba(197,160,89,.12);color:var(--gold);"><i class="fas fa-star"></i></div>
-      <div class="kpi-val">${overallStr}%</div>
+      <div class="kpi-val" id="kpiAvg">0%</div>
       <div class="kpi-lbl">المعدل التراكمي</div>
     </div>
     <div class="kpi-box">
       <div class="kpi-icon" style="background:rgba(239,68,68,.1);color:var(--red);"><i class="fas fa-calendar-times"></i></div>
-      <div class="kpi-val">${absences}</div>
+      <div class="kpi-val" id="kpiAbs">0</div>
       <div class="kpi-lbl">الغيابات</div>
     </div>
     <div class="kpi-box">
       <div class="kpi-icon" style="background:rgba(59,130,246,.1);color:var(--blue);"><i class="fas fa-book-open"></i></div>
-      <div class="kpi-val">${subjCount}</div>
+      <div class="kpi-val" id="kpiSubj">0</div>
       <div class="kpi-lbl">المواد</div>
     </div>`;
   res.appendChild(kpiEl);
   observe(kpiEl);
+  setTimeout(()=>{
+    countUp($('kpiAvg'), parseFloat(overall.toFixed(1)), '%');
+    countUp($('kpiAbs'), absences, '');
+    countUp($('kpiSubj'), subjCount, '');
+  }, 150);
 
-  // ── Overview chart (bar per subject) ──
+  // ── Strength / Weakness highlight cards ──
+  if(subjEntries.length>1){
+    const strongest = [...subjEntries].sort((a,b)=>b.st.avg-a.st.avg)[0];
+    const weakest   = [...subjEntries].sort((a,b)=>a.st.avg-b.st.avg)[0];
+    if(strongest.subj !== weakest.subj){
+      const hlEl=document.createElement('div');
+      hlEl.className='highlight-row reveal';
+      hlEl.innerHTML=`
+        <div class="highlight-card strong">
+          <div class="hl-top">
+            <div class="hl-icon" style="background:rgba(16,185,129,.15);color:var(--green)"><i class="fas fa-trophy"></i></div>
+            <div class="hl-label">أقوى مادة</div>
+          </div>
+          <div class="hl-subj">${esc(strongest.subj)}</div>
+          <div class="hl-val" style="color:var(--green)">${strongest.st.avg}%</div>
+        </div>
+        <div class="highlight-card weak">
+          <div class="hl-top">
+            <div class="hl-icon" style="background:rgba(239,68,68,.12);color:var(--red)"><i class="fas fa-triangle-exclamation"></i></div>
+            <div class="hl-label">تحتاج تحسين</div>
+          </div>
+          <div class="hl-subj">${esc(weakest.subj)}</div>
+          <div class="hl-val" style="color:var(--red)">${weakest.st.avg}%</div>
+        </div>`;
+      res.appendChild(hlEl);
+      observe(hlEl);
+    }
+  }
+
+  // ── Overview chart (bar per subject, last exam) ──
   const ovCard=document.createElement('div');
   ovCard.className='chart-card reveal';
   ovCard.innerHTML=`
@@ -569,14 +767,35 @@ function buildUI(data, code) {
   res.appendChild(ovCard);
   observe(ovCard);
 
+  // ── Overall trend chart (avg across subjects per exam sequence) ──
+  const maxLen = Math.max(0, ...subjEntries.map(e=>e.scores.length));
+  let trendLabels=[], trendVals=[];
+  for(let i=0;i<maxLen;i++){
+    const vals=subjEntries.filter(e=>e.scores[i]!==undefined).map(e=>e.scores[i]);
+    if(vals.length){
+      trendVals.push(parseFloat((vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1)));
+      trendLabels.push(`اختبار ${i+1}`);
+    }
+  }
+  let trCard=null;
+  if(trendVals.length>1){
+    trCard=document.createElement('div');
+    trCard.className='chart-card reveal';
+    trCard.innerHTML=`
+      <div class="chart-head">
+        <div class="chart-title"><i class="fas fa-route"></i> المسار العام للمعدل</div>
+        <div class="chart-sub">متوسط جميع المواد عبر الاختبارات</div>
+      </div>
+      <div class="chart-wrap"><canvas id="trendChart"></canvas></div>`;
+    res.appendChild(trCard);
+    observe(trCard);
+  }
+
   setTimeout(()=>{
     const labels=[], vals=[], colors=[];
-    for(let s in (data.exams||{})){
-      const sc=data.exams[s].map(v=>parsePct(v));
-      const last=sc[sc.length-1];
-      labels.push(s); vals.push(last);
-      colors.push(scoreColor(last));
-    }
+    subjEntries.forEach(e=>{
+      labels.push(e.subj); vals.push(e.st.last); colors.push(scoreColor(e.st.last));
+    });
     const ctx=$('overviewChart').getContext('2d');
     const ch=new Chart(ctx,{
       type:'bar',
@@ -602,40 +821,71 @@ function buildUI(data, code) {
       }
     });
     activeCharts.push(ch);
+
+    if(trCard){
+      const ctx2=$('trendChart').getContext('2d');
+      const grad=ctx2.createLinearGradient(0,0,0,220);
+      grad.addColorStop(0,'rgba(197,160,89,.35)');
+      grad.addColorStop(1,'rgba(197,160,89,.02)');
+      const ch2=new Chart(ctx2,{
+        type:'line',
+        data:{
+          labels:trendLabels,
+          datasets:[{
+            data:trendVals, borderColor:'#C5A059', borderWidth:3,
+            fill:true, backgroundColor:grad, tension:.4,
+            pointRadius:4, pointBackgroundColor:'#E2BF7A', pointHoverRadius:6
+          }]
+        },
+        options:{
+          responsive:true, maintainAspectRatio:false,
+          plugins:{legend:{display:false},
+            tooltip:{backgroundColor:'#0D1A2D',titleColor:'#C5A059',bodyColor:'#E8EDF5',borderColor:'rgba(197,160,89,.3)',borderWidth:1,padding:10}},
+          scales:{
+            x:{ticks:{color:'#7A8A9F',font:{family:'Cairo',size:11}},grid:{color:'rgba(255,255,255,.03)'}},
+            y:{min:0,max:100,ticks:{color:'#7A8A9F',font:{family:'Cairo',size:11}},grid:{color:'rgba(255,255,255,.05)'}}
+          }
+        }
+      });
+      activeCharts.push(ch2);
+    }
   },200);
 
-  // ── Subject cards ──
+  // ── Subject cards (sorted by last score, ranked) ──
   const subjLabel=document.createElement('div');
   subjLabel.className='subjects-label reveal';
   subjLabel.textContent='تفاصيل كل مادة';
   res.appendChild(subjLabel);
   observe(subjLabel);
 
+  const emojiMap = {};
   const emojis=['📚','🔬','🧮','✏️','🌍','🎨','⚗️','📐'];
   let ei=0;
 
-  for(let subj in (data.exams||{})){
-    const rawScores = data.exams[subj];
-    const scores = rawScores.map(v=>parsePct(v));
-    const st = calcStats(scores);
+  subjEntries.forEach((entry, idx) => {
+    const { subj, scores, st } = entry;
     const emoji = emojis[ei%emojis.length]; ei++;
 
     const trendHTML =
       st.trend==='up'   ? `<span class="trend-chip trend-up"><i class="fas fa-arrow-up"></i> صعود ${st.last-st.prev > 0 ? '+'+((st.last-st.prev).toFixed(0)) : ''}</span>` :
       st.trend==='down' ? `<span class="trend-chip trend-down"><i class="fas fa-arrow-down"></i> تراجع ${((st.last-st.prev).toFixed(0))}</span>` :
                           `<span class="trend-chip trend-flat"><i class="fas fa-minus"></i> مستقر</span>`;
+    const predictHTML = scores.length>1
+      ? `<span class="predict-chip"><i class="fas fa-wand-magic-sparkles"></i> توقع القادم: ${st.predicted}%</span>`
+      : '';
 
     const fillColor = scoreColor(st.last);
     const rec = getRecommendation(subj, st);
     const safeId = subj.replace(/\s+/g,'_').replace(/[^\w]/g,'');
-    const chartId = `chart_${safeId}`;
+    const chartId = `chart_${safeId}_${idx}`;
 
     const card=document.createElement('div');
     card.className='subj-card reveal';
     card.innerHTML=`
+      <div class="rank-chip">${idx+1}</div>
       <div class="subj-top">
         <div class="subj-name"><span class="subj-emoji">${emoji}</span>${esc(subj)}</div>
-        ${trendHTML}
+        <div class="chip-group">${trendHTML}${predictHTML}</div>
       </div>
 
       <div class="subj-stats">
@@ -679,14 +929,12 @@ function buildUI(data, code) {
     res.appendChild(card);
     observe(card);
 
-    // Animate progress bars after append
     setTimeout(()=>{
       card.querySelectorAll('.prog-fill[data-val]').forEach(el=>{
         el.style.width=el.dataset.val+'%';
       });
     },300);
 
-    // Mini sparkline
     if(scores.length>1){
       setTimeout(()=>{
         const ctx2=$(`${chartId}`)?.getContext('2d');
@@ -721,15 +969,19 @@ function buildUI(data, code) {
         activeCharts.push(ch2);
       },400);
     }
-  }
+  });
 
-  // ── Share button ──
-  const shareEl=document.createElement('button');
-  shareEl.className='share-btn reveal';
-  shareEl.innerHTML='<i class="fas fa-camera"></i> حفظ التقرير كصورة للمشاركة';
-  shareEl.onclick=doShare;
-  res.appendChild(shareEl);
-  observe(shareEl);
+  // ── Action buttons ──
+  const actionEl=document.createElement('div');
+  actionEl.className='action-row reveal no-print';
+  actionEl.innerHTML=`
+    <button class="action-btn" onclick="doShare()"><i class="fas fa-camera"></i> حفظ كصورة</button>
+    <button class="action-btn" onclick="window.print()"><i class="fas fa-print"></i> طباعة التقرير</button>`;
+  res.appendChild(actionEl);
+  observe(actionEl);
+
+  // Celebrate top performers
+  if(overall>=90){ setTimeout(fireConfetti, 500); }
 }
 
 /* ── Share ── */
@@ -738,7 +990,7 @@ async function doShare(){
   try{
     const canvas=await html2canvas($('pageWrap'),{
       backgroundColor:'#09111E',scale:2,useCORS:true,
-      ignoreElements:el=>el.id==='searchCard'
+      ignoreElements:el=>el.classList && el.classList.contains('no-print')
     });
     const link=document.createElement('a');
     link.download=`تقرير_ميزان_${new Date().toLocaleDateString('ar')}.png`;
@@ -751,6 +1003,7 @@ async function doShare(){
 
 /* ── Init ── */
 document.querySelectorAll('.reveal').forEach(el=>IO.observe(el));
+setupQuickRecall();
 </script>
 
 </body>
