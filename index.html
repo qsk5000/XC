@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
@@ -639,6 +640,23 @@ async function doFetch() {
   activeCharts=[];
 
   try {
+    if(!firebase.auth().currentUser){
+      await firebase.auth().signInAnonymously();
+    }
+
+    // Make sure this uid is (or becomes) linked to the student's code via StudentPortal,
+    // since Results/StudentResults ownership checks are anchored there.
+    const portalDoc = await db.collection('StudentPortal').doc(code).get();
+    if(!portalDoc.exists){
+      $('errMsg').innerHTML='<i class="fas fa-exclamation-triangle"></i> الكود غير موجود في النظام';
+      $('results').innerHTML='';
+      unloader(); return;
+    }
+    const portalData = portalDoc.data();
+    if(!portalData.authUid){
+      await db.collection('StudentPortal').doc(code).update({authUid: firebase.auth().currentUser.uid});
+    }
+
     const doc = await db.collection('StudentResults').doc(code).get();
     if(!doc.exists){
       $('errMsg').innerHTML='<i class="fas fa-exclamation-triangle"></i> الكود غير موجود في النظام';
@@ -650,7 +668,7 @@ async function doFetch() {
     buildUI(data, code);
     toast(`تم تحميل تقرير ${data.name}، تحقق من نتائجك`,'s');
   } catch(e) {
-    toast('خطأ في الاتصال بالخادم','e');
+    toast('خطأ في الاتصال بالخادم: '+e.message,'e');
     console.error(e);
   }
   unloader();
